@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api"; // Your FastAPI backend URL
-
+const API_BASE_URL ="http://linkedin-scraper-dashboard-backend.onrender.com/api";
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
