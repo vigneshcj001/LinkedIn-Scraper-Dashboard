@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL =
+  "https://linkedin-scraper-dashboard-backend.onrender.com/api";
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
