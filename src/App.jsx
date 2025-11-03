@@ -432,7 +432,7 @@ const ProfileTab = ({ fetchData, ...props }) => {
       <input
         type="text"
         className="block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Enter LinkedIn username (e.g., neal-mohan)"
+        placeholder="Enter LinkedIn username (e.g., ganapathy-subburathinam)"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         required
@@ -442,7 +442,7 @@ const ProfileTab = ({ fetchData, ...props }) => {
 };
 
 const PostsTab = ({ fetchData, ...props }) => {
-  const [username, setUsername] = useState("neal-mohan");
+  const [username, setUsername] = useState("ganapathy-subburathinam");
   const [pageNumber, setPageNumber] = useState(1);
 
   const handleSubmit = (e) => {
@@ -501,7 +501,7 @@ const PostsTab = ({ fetchData, ...props }) => {
       <input
         type="text"
         className="block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Enter LinkedIn username (e.g., neal-mohan)"
+        placeholder="Enter LinkedIn username (e.g., ganapathy-subburathinam)"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         required
