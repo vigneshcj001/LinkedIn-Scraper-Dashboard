@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_BASE_URL ="https://linkedin-scraper-dashboard-backend.onrender.com/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
@@ -520,7 +520,7 @@ const PostsTab = ({ fetchData, ...props }) => {
 
 const CommentsTab = ({ fetchData, ...props }) => {
   const [postUrl, setPostUrl] = useState(
-    "https://www.linkedin.com/posts/satyanadella_were-taking-the-next-big-step-with-researcher-ugcPost-7389713443714469888-B-oo"
+    "https://www.linkedin.com/posts/chorouk-malmoum_ive-built-90-ai-agents-in-last-12-months-activity-7371091659725635584-8zS1?utm_source=share&utm_medium=member_android&rcm=ACoAAC0AjAEB13qzcyb0uxtDOeMXhJ9kXGeFc6A"
   );
   const [pageNumber, setPageNumber] = useState(1);
   const [sortOrder, setSortOrder] = useState("Most relevant");
@@ -606,7 +606,7 @@ const CommentsTab = ({ fetchData, ...props }) => {
 };
 
 const CompanyTab = ({ fetchData, ...props }) => {
-  const [identifier, setIdentifier] = useState("16140"); // Example: YouTube Company ID
+  const [identifier, setIdentifier] = useState("Ceiyone"); // Example: YouTube Company ID
 
   const handleSubmit = (e) => {
     e.preventDefault();
