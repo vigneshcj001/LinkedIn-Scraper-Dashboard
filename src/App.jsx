@@ -117,18 +117,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 px-12 py-10">
       <h1 className="text-4xl font-bold text-center text-blue-800 mb-8">
         LinkedIn Scraper Dashboard
       </h1>
 
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
+      <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">
           RapidAPI Key Configuration
         </h2>
         <div className="flex items-center space-x-4">
           <input
-            type="password" // Use password type for security
+            type="password"
             className="flex-1 p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             placeholder="Enter your RapidAPI Key"
             value={rapidApiKey}
@@ -149,9 +149,12 @@ function App() {
         )}
       </div>
 
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg">
+        <div className="border-b border-gray-200 ">
+          <nav
+            className="-mb-px flex space-x-10 px-10 min-w-max sm:justify-center"
+            aria-label="Tabs"
+          >
             {[
               { name: "Profile Details", id: "profile" },
               { name: "Profile Posts", id: "posts" },
@@ -193,14 +196,14 @@ const DataTable = ({ data, columns, title }) => {
   const tableColumns = columns || Object.keys(data[0]);
 
   return (
-    <div className="overflow-x-auto shadow-md sm:rounded-lg mb-6">
+    <div className="overflow-x-auto shadow-md sm:rounded-lg mb-6 w-full">
       <h3 className="text-xl font-medium text-gray-700 mb-2">{title}</h3>
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-200">
           <tr>
             {tableColumns.map((col) => (
               <th key={col} scope="col" className="px-6 py-3">
-                {col.replace(/_/g, " ")} {/* Make headers more readable */}
+                {col.replace(/_/g, " ")}
               </th>
             ))}
           </tr>
@@ -210,7 +213,6 @@ const DataTable = ({ data, columns, title }) => {
             <tr key={rowIndex} className="bg-white border-b hover:bg-gray-50">
               {tableColumns.map((col) => (
                 <td key={col} className="px-6 py-4">
-                  {/* Check if the value is a React element (JSX) */}
                   {
                     row[col] &&
                     typeof row[col] === "object" &&
@@ -239,7 +241,7 @@ const TabContainer = ({
   loading,
   error,
   response,
-  TableComponent, // New prop for custom table rendering
+  TableComponent, 
 }) => (
   <div>
     <h2 className="text-2xl font-semibold text-gray-800 mb-4">{title}</h2>
@@ -542,14 +544,14 @@ const CommentsTab = ({ fetchData, ...props }) => {
       <DataTable
         title="Post Comments"
         data={comments.map((comment) => ({
-          Commenter: comment.author?.name || "N/A", // Corrected path
-          Headline: comment.author?.headline || "N/A", // Corrected path
+          Commenter: comment.author?.name || "N/A", 
+          Headline: comment.author?.headline || "N/A", 
           Text: comment.text ? `${comment.text.substring(0, 100)}...` : "N/A",
           Reactions: comment.stats?.total_reactions || 0,
-          Posted: comment.posted_at?.relative || "N/A", // Corrected path
-          Link: comment.comment_url ? ( // Corrected field name
+          Posted: comment.posted_at?.relative || "N/A", 
+          Link: comment.comment_url ? ( 
             <a
-              href={comment.comment_url} // Corrected field name
+              href={comment.comment_url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline"
@@ -608,7 +610,7 @@ const CommentsTab = ({ fetchData, ...props }) => {
 };
 
 const CompanyTab = ({ fetchData, ...props }) => {
-  const [identifier, setIdentifier] = useState("Ceiyone"); // Example: YouTube Company ID
+  const [identifier, setIdentifier] = useState("Ceiyone");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -620,13 +622,13 @@ const CompanyTab = ({ fetchData, ...props }) => {
     const company = data.data.basic_info;
 
     const companyData = [
-      { key: "Company Name", value: company.name }, // Corrected from company_name
+      { key: "Company Name", value: company.name },
       {
         key: "Tagline",
         value: company.description
           ? `${company.description.substring(0, 100)}...`
           : "-",
-      }, // Corrected from tagline, added truncation
+      }, 
       {
         key: "LinkedIn URL",
         value: (
@@ -642,9 +644,9 @@ const CompanyTab = ({ fetchData, ...props }) => {
       },
       {
         key: "Website",
-        value: company.website ? ( // Corrected from website_url
+        value: company.website ? ( 
           <a
-            href={company.website} // Corrected from website_url
+            href={company.website}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
