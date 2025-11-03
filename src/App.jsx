@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import toast, { Toaster } from "react-hot-toast";
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
@@ -134,11 +134,12 @@ function App() {
             onChange={(e) => setRapidApiKey(e.target.value)}
           />
           <button
-            onClick={() => alert("Key saved to browser's local storage.")}
+            onClick={() => toast.success("Key saved to local storage!")}
             className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
           >
             Save Key
           </button>
+          <Toaster position="bottom-right" />
         </div>
         {!rapidApiKey && (
           <p className="mt-4 text-red-500">
