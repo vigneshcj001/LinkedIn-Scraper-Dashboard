@@ -9,7 +9,7 @@ import AnalyticsTab from "./components/tabs/AnalyticsTab";
 import ReactionsTab from "./components/tabs/ReactionsTab";
 
 const API_BASE_URL =
-  "https://linkedin-scraper-dashboard-backend.onrender.com/api";
+  "https://linkedin-scraper-dashboard-backend.onrender.com//api";
 
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
