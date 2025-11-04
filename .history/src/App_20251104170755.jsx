@@ -32,7 +32,12 @@ function App() {
   // ==========================================================
   // FETCH WRAPPER — with retry, backoff & 429 handling
   // ==========================================================
-  const fetchData = async (endpoint, params = {}, method = "GET", body = null) => {
+  const fetchData = async (
+    endpoint,
+    params = {},
+    method = "GET",
+    body = null
+  ) => {
     setLoading(true);
     setResponse(null);
     setError(null);
@@ -73,7 +78,8 @@ function App() {
 
         if (res.status === 429) {
           attempt++;
-          if (attempt === 3) throw new Error("RapidAPI rate limit reached. Try again later.");
+          if (attempt === 3)
+            throw new Error("RapidAPI rate limit reached. Try again later.");
           continue;
         }
 

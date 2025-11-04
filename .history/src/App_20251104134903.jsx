@@ -17,22 +17,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load API key from localStorage
+  // Load API key from local storage
   useEffect(() => {
     const storedKey = localStorage.getItem("rapidApiKey");
     if (storedKey) setRapidApiKey(storedKey);
   }, []);
 
-  // Save API key to localStorage
+  // Save API key
   useEffect(() => {
     if (rapidApiKey) localStorage.setItem("rapidApiKey", rapidApiKey);
     else localStorage.removeItem("rapidApiKey");
   }, [rapidApiKey]);
 
-  // ==========================================================
-  // FETCH WRAPPER — with retry, backoff & 429 handling
-  // ==========================================================
-  const fetchData = async (endpoint, params = {}, method = "GET", body = null) => {
+  const fetchData = async (endpoint, params = {}) => {
     setLoading(true);
     setResponse(null);
     setError(null);
@@ -46,63 +43,31 @@ function App() {
     try {
       const query = new URLSearchParams(params).toString();
       const url = `${API_BASE_URL}/${endpoint}${query ? `?${query}` : ""}`;
-
-      const options = {
-        method,
+      const res = await fetch(url, {
         headers: {
-          "Content-Type": "application/json",
           "x-rapidapi-key": rapidApiKey,
+          "Content-Type": "application/json",
         },
-      };
-      if (body) options.body = JSON.stringify(body);
+      });
 
-      let attempt = 0;
-      let success = false;
-      let data;
-
-      while (attempt < 3 && !success) {
-        if (attempt > 0) {
-          const backoff = 1000 * Math.pow(2, attempt - 1);
-          toast(`Retrying... attempt ${attempt + 1}`, { icon: "⏳" });
-          await new Promise((r) => setTimeout(r, backoff));
-        }
-
-        await new Promise((r) => setTimeout(r, 700)); // small rate-limit delay
-
-        const res = await fetch(url, options);
-
-        if (res.status === 429) {
-          attempt++;
-          if (attempt === 3) throw new Error("RapidAPI rate limit reached. Try again later.");
-          continue;
-        }
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail || `HTTP error ${res.status}`);
-        }
-
-        data = await res.json();
-        success = true;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.detail || `HTTP error! status: ${res.status}`
+        );
       }
 
+      const data = await res.json();
       setResponse(data);
-      toast.success("✅ Data fetched successfully!");
     } catch (err) {
-      console.error("Fetch Error:", err);
-      toast.error(err.message || "An unexpected error occurred.");
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ==========================================================
-  // TAB HANDLER
-  // ==========================================================
   const renderContent = () => {
     const sharedProps = { fetchData, loading, error, response };
-
     switch (activeTab) {
       case "profile":
         return <ProfileTab {...sharedProps} />;
@@ -121,21 +86,17 @@ function App() {
     }
   };
 
-  // ==========================================================
-  // UI
-  // ==========================================================
   return (
     <div className="min-h-screen bg-gray-100 px-12 py-10">
       <h1 className="text-4xl font-bold text-center text-blue-800 mb-8">
         LinkedIn Scraper Dashboard
       </h1>
 
-      {/* API Key Section */}
+      {/* --- API Key Section --- */}
       <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">
           RapidAPI Key Configuration
         </h2>
-
         <div className="flex items-center space-x-4">
           <input
             type="password"
@@ -145,14 +106,13 @@ function App() {
             onChange={(e) => setRapidApiKey(e.target.value)}
           />
           <button
-            onClick={() => toast.success("🔐 Key saved to local storage!")}
+            onClick={() => toast.success("Key saved to local storage!")}
             className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
           >
             Save Key
           </button>
           <Toaster position="bottom-right" />
         </div>
-
         {!rapidApiKey && (
           <p className="mt-4 text-red-500">
             Please enter your RapidAPI Key to make requests.
@@ -160,7 +120,7 @@ function App() {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* --- Tabs Navigation --- */}
       <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg">
         <div className="border-b border-gray-200">
           <nav

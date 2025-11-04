@@ -17,13 +17,14 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load API key from localStorage
+  // ==========================================================
+  // LOCAL STORAGE HANDLERS
+  // ==========================================================
   useEffect(() => {
     const storedKey = localStorage.getItem("rapidApiKey");
     if (storedKey) setRapidApiKey(storedKey);
   }, []);
 
-  // Save API key to localStorage
   useEffect(() => {
     if (rapidApiKey) localStorage.setItem("rapidApiKey", rapidApiKey);
     else localStorage.removeItem("rapidApiKey");
@@ -32,7 +33,12 @@ function App() {
   // ==========================================================
   // FETCH WRAPPER — with retry, backoff & 429 handling
   // ==========================================================
-  const fetchData = async (endpoint, params = {}, method = "GET", body = null) => {
+  const fetchData = async (
+    endpoint,
+    params = {},
+    method = "GET",
+    body = null
+  ) => {
     setLoading(true);
     setResponse(null);
     setError(null);
@@ -67,13 +73,14 @@ function App() {
           await new Promise((r) => setTimeout(r, backoff));
         }
 
-        await new Promise((r) => setTimeout(r, 700)); // small rate-limit delay
+        await new Promise((r) => setTimeout(r, 700)); // rate-limit delay
 
         const res = await fetch(url, options);
 
         if (res.status === 429) {
           attempt++;
-          if (attempt === 3) throw new Error("RapidAPI rate limit reached. Try again later.");
+          if (attempt === 3)
+            throw new Error("RapidAPI rate limit reached. Try again later.");
           continue;
         }
 
@@ -98,7 +105,45 @@ function App() {
   };
 
   // ==========================================================
-  // TAB HANDLER
+  // EXPORT HANDLERS — CSV & JSON
+  // ==========================================================
+  const exportToJSON = () => {
+    if (!response) return toast.error("No data to export.");
+    const blob = new Blob([JSON.stringify(response, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `linkedin_data_${activeTab}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("📦 JSON file downloaded!");
+  };
+
+  const exportToCSV = () => {
+    if (!response) return toast.error("No data to export.");
+
+    const data = Array.isArray(response) ? response : [response];
+    const keys = [...new Set(data.flatMap(Object.keys))];
+    const csvRows = [
+      keys.join(","), // header
+      ...data.map((obj) =>
+        keys.map((k) => JSON.stringify(obj[k] ?? "")).join(",")
+      ),
+    ];
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `linkedin_data_${activeTab}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("📊 CSV file downloaded!");
+  };
+
+  // ==========================================================
+  // TAB RENDER
   // ==========================================================
   const renderContent = () => {
     const sharedProps = { fetchData, loading, error, response };
@@ -190,7 +235,27 @@ function App() {
           </nav>
         </div>
 
-        <div className="p-6">{renderContent()}</div>
+        <div className="p-6">
+          {renderContent()}
+
+          {/* Export Buttons */}
+          {response && (
+            <div className="mt-6 flex gap-4">
+              <button
+                onClick={exportToCSV}
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+              >
+                Export to CSV
+              </button>
+              <button
+                onClick={exportToJSON}
+                className="px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition duration-200"
+              >
+                Export to JSON
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
