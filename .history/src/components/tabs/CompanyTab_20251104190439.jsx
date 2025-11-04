@@ -51,7 +51,10 @@ const CompanyTab = ({ fetchData, ...props }) => {
         ),
       },
       { Key: "Industry", Value: (company.industries || []).join(", ") },
-      { Key: "Specialties", Value: (company.specialties || []).join(", ") },
+      {
+        Key: "Specialties",
+        Value: (company.specialties || []).join(", "),
+      },
       {
         Key: "Founded",
         Value: company.founded_info?.year
@@ -159,96 +162,50 @@ const CompanyTab = ({ fetchData, ...props }) => {
       ),
     }));
 
-    // ✅ Export Functions
-    const exportJSON = () => {
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${company.name || "company"}_details.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const exportCSV = () => {
-      const allSections = {
-        "Basic Info": basicInfoRows,
-        Stats: statsRows,
-        Location: locationRows,
-        Media: mediaRows,
-        Funding: fundingRows,
-        Links: linksRows,
-      };
-
-      let csvContent = "Section,Key,Value\n";
-      Object.entries(allSections).forEach(([section, rows]) => {
-        rows.forEach((r) => {
-          csvContent += `"${section}","${r.Key}","${
-            r.Value?.props ? r.Value.props.children : r.Value
-          }"\n`;
-        });
-      });
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${company.name || "company"}_details.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
     return (
       <div className="space-y-8">
-        {/* Export Buttons */}
-        <div className="flex justify-end space-x-4 mb-4">
-          <button
-            onClick={exportJSON}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
-            Export JSON
-          </button>
-          <button
-            onClick={exportCSV}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Export CSV
-          </button>
-        </div>
-
-        {/* Tables */}
+        {/* Basic Info */}
         <DataTable
           title="🏢 Company Information"
           data={basicInfoRows}
           columns={["Key", "Value"]}
         />
+
+        {/* Stats */}
         <DataTable
           title="📊 Company Stats"
           data={statsRows}
           columns={["Key", "Value"]}
         />
+
+        {/* Locations */}
         <DataTable
           title="📍 Headquarters"
           data={locationRows}
           columns={["Key", "Value"]}
         />
+
+        {/* Media */}
         <DataTable
           title="🖼️ Media"
           data={mediaRows}
           columns={["Key", "Value"]}
         />
+
+        {/* Funding */}
         <DataTable
           title="💰 Funding Information"
           data={fundingRows}
           columns={["Key", "Value"]}
         />
+
+        {/* Links */}
         <DataTable
           title="🔗 Links"
           data={linksRows}
           columns={["Key", "Value"]}
         />
+
       </div>
     );
   };

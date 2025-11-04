@@ -16,77 +16,6 @@ const ProfileTab = ({ fetchData, ...props }) => {
     const experience = data.data.experience || [];
     const education = data.data.education || [];
 
-    // ✅ Export Handlers
-    const exportJSON = () => {
-      const blob = new Blob([JSON.stringify(data.data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${username}_profile.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const exportCSV = () => {
-      const csvSections = [];
-
-      // Basic Info
-      const basicInfo = [
-        ["Full Name", profile.fullname],
-        ["Headline", profile.headline],
-        ["Profile URL", profile.profile_url],
-        ["Location", profile.location?.full || "-"],
-        ["Followers", profile.follower_count],
-        ["Connections", profile.connection_count],
-        ["Current Company", profile.current_company],
-      ];
-      csvSections.push("Basic Info");
-      csvSections.push("Key,Value");
-      csvSections.push(...basicInfo.map((r) => `"${r[0]}","${r[1] || "-"}"`));
-      csvSections.push("");
-
-      // Experience
-      if (experience.length) {
-        csvSections.push("Experience");
-        csvSections.push("Title,Company,Duration,Company URL");
-        csvSections.push(
-          ...experience.map(
-            (exp) =>
-              `"${exp.title}","${exp.company}","${exp.duration}","${
-                exp.company_linkedin_url || "-"
-              }"`
-          )
-        );
-        csvSections.push("");
-      }
-
-      // Education
-      if (education.length) {
-        csvSections.push("Education");
-        csvSections.push("School,Degree,Field,Duration,School URL");
-        csvSections.push(
-          ...education.map(
-            (edu) =>
-              `"${edu.school}","${edu.degree_name}","${edu.field_of_study}","${
-                edu.duration
-              }","${edu.school_linkedin_url || "-"}"`
-          )
-        );
-      }
-
-      const blob = new Blob([csvSections.join("\n")], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${username}_profile.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
     const profileData = [
       { key: "Full Name", value: profile.fullname },
       { key: "Headline", value: profile.headline },
@@ -111,22 +40,6 @@ const ProfileTab = ({ fetchData, ...props }) => {
 
     return (
       <>
-        {/* ✅ Export Buttons */}
-        <div className="flex justify-end space-x-4 mb-4">
-          <button
-            onClick={exportJSON}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
-            Export JSON
-          </button>
-          <button
-            onClick={exportCSV}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Export CSV
-          </button>
-        </div>
-
         {/* Header Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
           {profile.background_picture_url && (
@@ -166,7 +79,6 @@ const ProfileTab = ({ fetchData, ...props }) => {
           </div>
         </div>
 
-        {/* Basic Info */}
         <DataTable
           title="Basic Profile Information"
           data={profileData.map((item) => ({
@@ -176,7 +88,6 @@ const ProfileTab = ({ fetchData, ...props }) => {
           columns={["Key", "Value"]}
         />
 
-        {/* Experience */}
         {experience.length > 0 && (
           <DataTable
             title="Experience"
@@ -201,7 +112,6 @@ const ProfileTab = ({ fetchData, ...props }) => {
           />
         )}
 
-        {/* Education */}
         {education.length > 0 && (
           <DataTable
             title="Education"

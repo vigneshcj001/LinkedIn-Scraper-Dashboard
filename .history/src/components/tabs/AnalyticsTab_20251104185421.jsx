@@ -15,63 +15,35 @@ import {
 
 const AnalyticsTab = ({ fetchData, ...props }) => {
   const [postUrl, setPostUrl] = useState(
-    "https://www.linkedin.com/posts/chorouk-malmoum_ive-built-90-ai-agents-in-last-12-months-activity-7371091659725635584-8zS1"
+    "https://www.linkedin.com/posts/chorouk-malmoum_ive-built-90-ai-agents-in-last-12-months-activity-7371091659725635584-8zS1?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC0AjAEB13qzcyb0uxtDOeMXhJ9kXGeFc6A"
   );
 
+  // Handle form submit to fetch analytics data
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchData("analytics/comments", { post_url: postUrl });
   };
 
-  // ---------- Export JSON ----------
-  const exportJSON = (data, filename = "analytics_data.json") => {
-    if (!data) return;
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ---------- Export CSV ----------
-  const exportCSV = (data, filename = "analytics_data.csv") => {
-    if (!data || !data.length) return;
-    const headers = Object.keys(data[0]);
-    const csvRows = [
-      headers.join(","),
-      ...data.map((row) =>
-        headers.map((h) => JSON.stringify(row[h] ?? "")).join(",")
-      ),
-    ];
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ---------- Table ----------
+  // Inner table + chart display component
   const AnalyticsTable = ({ data }) => {
     const summary = data?.summary || {};
     const comments = data?.comments || [];
 
     if (!summary.total_comments) return <p>No analytics available.</p>;
 
+    // --- Extract top commenters ---
     const topCommenters = summary.top_commenters || [];
+
+    // --- Reaction histogram data ---
     const reactionHistogram = summary.reaction_histogram || {};
     const reactionData = Object.entries(reactionHistogram).map(
       ([type, count]) => ({
-        Reaction: type,
-        Count: count,
+        Reaction: type, // X-axis → number of reactions
+        Count: count, // Y-axis → number of comments
       })
     );
 
+    // --- Filtered summary metrics ---
     const filteredSummary = Object.entries(summary)
       .filter(
         ([key]) => key !== "top_commenters" && key !== "reaction_histogram"
@@ -86,7 +58,7 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
 
     return (
       <div className="space-y-8">
-        {/* ✅ Summary */}
+        {/* ✅ Summary Table */}
         <DataTable
           title="Comment Analytics Summary"
           data={filteredSummary}
@@ -105,7 +77,7 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
           />
         )}
 
-        {/* ✅ Reaction Histogram */}
+        {/* ✅ Reaction Histogram Chart */}
         {reactionData.length > 0 && (
           <div className="bg-white shadow rounded-lg p-5">
             <h2 className="text-lg font-semibold mb-3 text-gray-700">
@@ -120,20 +92,23 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="Reaction" tick={{ fontSize: 12 }}>
                     <Label
-                      value="Reaction Type"
+                      value="Number of Reactions per Comment"
                       offset={-10}
                       position="insideBottom"
                     />
                   </XAxis>
                   <YAxis tick={{ fontSize: 12 }}>
                     <Label
-                      value="Count"
+                      value="Number of Comments"
                       angle={-90}
                       position="insideLeft"
                       style={{ textAnchor: "middle" }}
                     />
                   </YAxis>
-                  <Tooltip />
+                  <Tooltip
+                    formatter={(value) => [`${value}`, "Comments"]}
+                    cursor={{ fill: "rgba(0,0,0,0.05)" }}
+                  />
                   <Bar dataKey="Count" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                     <LabelList dataKey="Count" position="top" />
                   </Bar>
@@ -143,23 +118,7 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
           </div>
         )}
 
-        {/* ✅ Export Buttons — now always visible */}
-        <div className="flex justify-end gap-3 mt-5">
-          <button
-            onClick={() => exportJSON(data)}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium shadow-sm transition"
-          >
-            Export JSON
-          </button>
-          <button
-            onClick={() => exportCSV(comments)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium shadow-sm transition"
-          >
-            Export CSV
-          </button>
-        </div>
-
-        {/* ✅ Detailed Comments */}
+        {/* ✅ Detailed Comments Section */}
         {comments.length > 0 && (
           <div className="bg-white shadow rounded-lg p-5">
             <h2 className="text-lg font-semibold mb-3 text-gray-700">
@@ -200,6 +159,16 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
             </div>
           </div>
         )}
+
+        {/* ✅ Raw JSON Viewer
+        <div className="bg-gray-50 border rounded-lg p-4">
+          <h3 className="text-md font-semibold mb-2 text-gray-700">
+            Raw JSON Response:
+          </h3>
+          <pre className="bg-gray-100 p-3 rounded overflow-x-auto text-xs text-gray-800">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </div> */}
       </div>
     );
   };

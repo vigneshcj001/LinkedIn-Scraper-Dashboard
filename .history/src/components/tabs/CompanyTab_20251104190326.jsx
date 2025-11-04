@@ -11,6 +11,9 @@ const CompanyTab = ({ fetchData, ...props }) => {
   };
 
   const CompanyDetailsTable = ({ data }) => {
+    if (!data || Object.keys(data).length === 0)
+      return <p>No company data found.</p>;
+
     const company = data?.data?.basic_info || data?.basic_info || {};
     const stats = data?.data?.stats || {};
     const locations = data?.data?.locations || {};
@@ -20,7 +23,41 @@ const CompanyTab = ({ fetchData, ...props }) => {
 
     if (!company.name) return <p>No company data found.</p>;
 
-    // ✅ Basic Info
+    // ✅ Export Helpers
+    const handleExportJSON = () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${company.name || "company"}_data.json`;
+      link.click();
+    };
+
+    const handleExportCSV = () => {
+      const flatten = (obj, prefix = "") =>
+        Object.entries(obj).flatMap(([k, v]) =>
+          typeof v === "object" && v !== null
+            ? flatten(v, `${prefix}${k}.`)
+            : [[`${prefix}${k}`, v]]
+        );
+      const flat = flatten(data);
+      const csv =
+        "Key,Value\n" +
+        flat
+          .map(([k, v]) => `"${k}","${String(v).replace(/"/g, '""')}"`)
+          .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${company.name || "company"}_data.csv`;
+      link.click();
+    };
+
+    // ✅ Data sections
     const basicInfoRows = [
       { Key: "Name", Value: company.name },
       { Key: "Tagline", Value: company.description },
@@ -54,14 +91,11 @@ const CompanyTab = ({ fetchData, ...props }) => {
       { Key: "Specialties", Value: (company.specialties || []).join(", ") },
       {
         Key: "Founded",
-        Value: company.founded_info?.year
-          ? `${company.founded_info.year}`
-          : "-",
+        Value: company.founded_info?.year || "-",
       },
       { Key: "Verified", Value: company.is_verified ? "✅ Yes" : "❌ No" },
     ];
 
-    // ✅ Stats
     const statsRows = [
       { Key: "Followers", Value: stats.follower_count || "-" },
       { Key: "Employees", Value: stats.employee_count || "-" },
@@ -74,7 +108,6 @@ const CompanyTab = ({ fetchData, ...props }) => {
       { Key: "Students", Value: stats.student_count || "-" },
     ];
 
-    // ✅ Location
     const hq = locations.headquarters || {};
     const locationRows = [
       { Key: "Country", Value: hq.country || "-" },
@@ -91,7 +124,6 @@ const CompanyTab = ({ fetchData, ...props }) => {
       },
     ];
 
-    // ✅ Media
     const mediaRows = [
       {
         Key: "Logo",
@@ -119,7 +151,6 @@ const CompanyTab = ({ fetchData, ...props }) => {
       },
     ];
 
-    // ✅ Funding
     const fundingRows = [
       { Key: "Total Rounds", Value: funding.total_rounds || "-" },
       { Key: "Latest Round Type", Value: funding.latest_round?.type || "-" },
@@ -142,7 +173,6 @@ const CompanyTab = ({ fetchData, ...props }) => {
       },
     ];
 
-    // ✅ Links
     const linksRows = Object.entries(links).map(([key, val]) => ({
       Key: key.charAt(0).toUpperCase() + key.slice(1),
       Value: val ? (
@@ -159,60 +189,19 @@ const CompanyTab = ({ fetchData, ...props }) => {
       ),
     }));
 
-    // ✅ Export Functions
-    const exportJSON = () => {
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${company.name || "company"}_details.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const exportCSV = () => {
-      const allSections = {
-        "Basic Info": basicInfoRows,
-        Stats: statsRows,
-        Location: locationRows,
-        Media: mediaRows,
-        Funding: fundingRows,
-        Links: linksRows,
-      };
-
-      let csvContent = "Section,Key,Value\n";
-      Object.entries(allSections).forEach(([section, rows]) => {
-        rows.forEach((r) => {
-          csvContent += `"${section}","${r.Key}","${
-            r.Value?.props ? r.Value.props.children : r.Value
-          }"\n`;
-        });
-      });
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${company.name || "company"}_details.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    };
-
     return (
       <div className="space-y-8">
         {/* Export Buttons */}
-        <div className="flex justify-end space-x-4 mb-4">
+        <div className="flex gap-3 mb-4">
           <button
-            onClick={exportJSON}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            onClick={handleExportJSON}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
             Export JSON
           </button>
           <button
-            onClick={exportCSV}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
           >
             Export CSV
           </button>
