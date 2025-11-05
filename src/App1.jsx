@@ -7,27 +7,23 @@ import CommentsTab from "./components/tabs/CommentsTab";
 import CompanyTab from "./components/tabs/CompanyTab";
 import AnalyticsTab from "./components/tabs/AnalyticsTab";
 import ReactionsTab from "./components/tabs/ReactionsTab";
-import BulkUploadTab from "./components/BulkUpload/BulkUploadTab";
 
-const API_BASE_URL =
-  "https://linkedin-scraper-dashboard-backend.onrender.com/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 function App() {
   const [rapidApiKey, setRapidApiKey] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
-  const [mode, setMode] = useState("manual"); // "manual" or "upload"
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ==========================================================
-  // Load/Save API key from localStorage
-  // ==========================================================
+  // Load API key from localStorage
   useEffect(() => {
     const storedKey = localStorage.getItem("rapidApiKey");
     if (storedKey) setRapidApiKey(storedKey);
   }, []);
 
+  // Save API key to localStorage
   useEffect(() => {
     if (rapidApiKey) localStorage.setItem("rapidApiKey", rapidApiKey);
     else localStorage.removeItem("rapidApiKey");
@@ -76,7 +72,8 @@ function App() {
           await new Promise((r) => setTimeout(r, backoff));
         }
 
-        await new Promise((r) => setTimeout(r, 700)); // rate-limit delay
+        await new Promise((r) => setTimeout(r, 700)); // small rate-limit delay
+
         const res = await fetch(url, options);
 
         if (res.status === 429) {
@@ -139,26 +136,6 @@ function App() {
         LinkedIn Scraper Dashboard
       </h1>
 
-      {/* MODE SELECTOR */}
-      <div className="flex justify-center space-x-6 mb-8">
-        <button
-          onClick={() => setMode("manual")}
-          className={`px-6 py-3 rounded-md text-white transition ${
-            mode === "manual" ? "bg-blue-600" : "bg-gray-400 hover:bg-gray-500"
-          }`}
-        >
-          🔍 Manual Fetch Mode
-        </button>
-        <button
-          onClick={() => setMode("upload")}
-          className={`px-6 py-3 rounded-md text-white transition ${
-            mode === "upload" ? "bg-blue-600" : "bg-gray-400 hover:bg-gray-500"
-          }`}
-        >
-          📤 CSV Upload Mode
-        </button>
-      </div>
-
       {/* API Key Section */}
       <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700">
@@ -189,41 +166,38 @@ function App() {
         )}
       </div>
 
-      {/* MODE-BASED CONTENT */}
-      {mode === "manual" ? (
-        <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg">
-          <div className="border-b border-gray-200">
-            <nav
-              className="-mb-px flex space-x-10 px-10 min-w-max sm:justify-center"
-              aria-label="Tabs"
-            >
-              {[
-                { name: "Profile Details", id: "profile" },
-                { name: "Profile Posts", id: "posts" },
-                { name: "Post Comments", id: "comments" },
-                { name: "Company Details", id: "company" },
-                { name: "Comment Analytics", id: "analytics" },
-                { name: "Post Reactions", id: "reactions" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`${
-                    tab.id === activeTab
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  {tab.name}
-                </button>
-              ))}
-            </nav>
-          </div>
-          <div className="p-6">{renderContent()}</div>
+      {/* Tabs */}
+      <div className="max-w-10xl mx-auto bg-white shadow-lg rounded-lg">
+        <div className="border-b border-gray-200">
+          <nav
+            className="-mb-px flex space-x-10 px-10 min-w-max sm:justify-center"
+            aria-label="Tabs"
+          >
+            {[
+              { name: "Profile Details", id: "profile" },
+              { name: "Profile Posts", id: "posts" },
+              { name: "Post Comments", id: "comments" },
+              { name: "Company Details", id: "company" },
+              { name: "Comment Analytics", id: "analytics" },
+              { name: "Post Reactions", id: "reactions" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`${
+                  tab.id === activeTab
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </nav>
         </div>
-      ) : (
-        <BulkUploadTab fetchData={fetchData} />
-      )}
+
+        <div className="p-6">{renderContent()}</div>
+      </div>
     </div>
   );
 }
