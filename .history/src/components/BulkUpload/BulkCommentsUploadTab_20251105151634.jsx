@@ -21,7 +21,7 @@ const BulkCommentsUploadTab = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("upload/comments", {
+      const res = await fetch("/upload/comments", {
         method: "POST",
         headers: { "x-rapidapi-key": apiKey },
         body: formData,

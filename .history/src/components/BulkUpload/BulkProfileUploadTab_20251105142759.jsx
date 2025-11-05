@@ -22,7 +22,7 @@ const BulkProfileUploadTab = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://127.0.0.1:8000/api/upload/profiles", {
+      const res = await fetch("/upload/profiles", {
         method: "POST",
         headers: { "x-rapidapi-key": apiKey },
         body: formData,

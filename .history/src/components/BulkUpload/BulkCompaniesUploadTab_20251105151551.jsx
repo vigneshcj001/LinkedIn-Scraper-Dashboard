@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import TabContainer from "../TabContainer";
 
-const BulkCommentsUploadTab = () => {
+const BulkCompaniesUploadTab = () => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
@@ -21,7 +21,7 @@ const BulkCommentsUploadTab = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("upload/comments", {
+      const res = await fetch("/upload/companies", {
         method: "POST",
         headers: { "x-rapidapi-key": apiKey },
         body: formData,
@@ -34,7 +34,7 @@ const BulkCommentsUploadTab = () => {
 
       const data = await res.json();
       setUploadResult(data);
-      toast.success(`✅ Processed ${data.count} post URLs for comments.`);
+      toast.success(`✅ Processed ${data.count} company identifiers.`);
     } catch (err) {
       toast.error(err.message);
       console.error("Upload error:", err);
@@ -50,7 +50,7 @@ const BulkCommentsUploadTab = () => {
     });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "linkedin_bulk_comments.json";
+    link.download = "linkedin_bulk_companies.json";
     link.click();
   };
 
@@ -60,7 +60,7 @@ const BulkCommentsUploadTab = () => {
     const csvSections = [];
 
     uploadResult.results.forEach((item, index) => {
-      csvSections.push(`Post ${index + 1}: ${item.post_url}`);
+      csvSections.push(`Company ${index + 1}: ${item.identifier}`);
       if (item.error) {
         csvSections.push("Key,Value");
         csvSections.push(`Error,"${item.error}"`);
@@ -68,24 +68,94 @@ const BulkCommentsUploadTab = () => {
         return;
       }
 
-      const comments = item.data?.data?.comments || [];
-      if (!comments.length) {
-        csvSections.push("No comments found for this post.");
-        csvSections.push("");
-        return;
-      }
+      const data = item.data;
+      if (!data?.basic_info) return;
 
-      csvSections.push("Author,Headline,Comment,Reactions,Posted,Comment URL");
-      comments.forEach((c) => {
+      const company = data.basic_info;
+      const stats = data.stats || {};
+      const locations = data.locations || {};
+      const funding = data.funding || {};
+      const links = data.links || {};
+
+      csvSections.push("");
+
+      // --- Basic Info ---
+      csvSections.push("Basic Info");
+      csvSections.push("Key,Value");
+      const basicInfoRows = [
+        ["Name", company.name],
+        ["Tagline", company.description],
+        ["LinkedIn URL", company.linkedin_url],
+        ["Website", company.website],
+        ["Industry", (company.industries || []).join(", ")],
+        ["Specialties", (company.specialties || []).join(", ")],
+        ["Founded", company.founded_info?.year],
+        ["Verified", company.is_verified ? "Yes" : "No"],
+      ];
+      csvSections.push(
+        ...basicInfoRows.map((r) => `"${r[0]}","${r[1] || "-"}"`)
+      );
+      csvSections.push("");
+
+      // --- Stats ---
+      csvSections.push("Stats");
+      csvSections.push("Key,Value");
+      const statsRows = [
+        ["Followers", stats.follower_count],
+        ["Employees", stats.employee_count],
+        [
+          "Employee Range",
+          stats.employee_count_range
+            ? `${stats.employee_count_range.start} - ${stats.employee_count_range.end}`
+            : "-",
+        ],
+        ["Students", stats.student_count],
+      ];
+      csvSections.push(...statsRows.map((r) => `"${r[0]}","${r[1] || "-"}"`));
+      csvSections.push("");
+
+      // --- Location ---
+      csvSections.push("Headquarters");
+      csvSections.push("Key,Value");
+      const hq = locations.headquarters || {};
+      const locationRows = [
+        ["Country", hq.country],
+        ["State", hq.state],
+        ["City", hq.city],
+        ["Postal Code", hq.postal_code],
+        ["Address", `${hq.line1 || ""} ${hq.line2 || ""}`],
+        ["Description", hq.description],
+        [
+          "Coordinates",
+          locations.geo_coordinates
+            ? `${locations.geo_coordinates.latitude}, ${locations.geo_coordinates.longitude}`
+            : "-",
+        ],
+      ];
+      csvSections.push(
+        ...locationRows.map((r) => `"${r[0]}","${r[1] || "-"}"`)
+      );
+      csvSections.push("");
+
+      // --- Funding ---
+      csvSections.push("Funding Information");
+      csvSections.push("Key,Value");
+      const fundingRows = [
+        ["Total Rounds", funding.total_rounds],
+        ["Latest Round Type", funding.latest_round?.type],
+        ["Latest Round Date", funding.latest_round?.date],
+        ["Investors", funding.latest_round?.investors_count],
+        ["Crunchbase URL", funding.crunchbase_url],
+      ];
+      csvSections.push(...fundingRows.map((r) => `"${r[0]}","${r[1] || "-"}"`));
+      csvSections.push("");
+
+      // --- Links ---
+      csvSections.push("Links");
+      csvSections.push("Key,Value");
+      Object.entries(links).forEach(([key, val]) => {
         csvSections.push(
-          [
-            `"${c.author?.name || "-"}"`,
-            `"${c.author?.headline || "-"}"`,
-            `"${(c.text || "").replace(/"/g, '""')}"`,
-            `"${c.stats?.total_reactions || 0}"`,
-            `"${c.posted_at?.relative || "-"}"`,
-            `"${c.comment_url || "-"}"`,
-          ].join(",")
+          `"${key.charAt(0).toUpperCase() + key.slice(1)}","${val || "-"}"`
         );
       });
       csvSections.push("");
@@ -99,21 +169,21 @@ const BulkCommentsUploadTab = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "linkedin_bulk_comments.csv";
+    link.download = "linkedin_bulk_companies.csv";
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <TabContainer
-      title="📤 Bulk Upload LinkedIn Post URLs for Comments (CSV)"
+      title="📤 Bulk Upload LinkedIn Company Identifiers (CSV)"
       onSubmit={handleFileUpload}
     >
       <div className="space-y-5">
         <div>
           <label className="block text-gray-700 font-medium mb-2">
-            Upload a CSV file containing LinkedIn post URLs (must have a
-            'post_url' column):
+            Upload a CSV file containing LinkedIn company identifiers (must have
+            an 'identifier' column):
           </label>
           <input
             type="file"
@@ -138,7 +208,7 @@ const BulkCommentsUploadTab = () => {
         {uploadResult && (
           <div className="flex flex-col items-start mt-6 space-y-3">
             <p className="text-gray-700">
-              ✅ Processed {uploadResult.count} post URLs.
+              ✅ Processed {uploadResult.count} company identifiers.
             </p>
             <div className="flex space-x-3">
               <button
@@ -161,4 +231,4 @@ const BulkCommentsUploadTab = () => {
   );
 };
 
-export default BulkCommentsUploadTab;
+export default BulkCompaniesUploadTab;

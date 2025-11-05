@@ -30,7 +30,7 @@ const ReactionsTab = ({ ...props }) => {
 
     try {
       setLoading(true);
-      const res = await fetch("post/reactions", {
+      const res = await fetch("/api/post/reactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

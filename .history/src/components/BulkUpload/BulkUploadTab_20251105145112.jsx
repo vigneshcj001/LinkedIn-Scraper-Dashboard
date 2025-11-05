@@ -36,10 +36,10 @@ const BulkUploadTab = () => {
           aria-label="Bulk Upload Tabs"
         >
           {[
-            { name: "Profile Details", id: "profile" },
-            { name: "Profile Posts", id: "posts" },
-            { name: "Post Comments", id: "comments" },
-            { name: "Company Details", id: "company" },
+            { name: "Profile Details", id: "profiles" },
+            { name: "Posts", id: "posts" },
+            { name: "Comments", id: "comments" },
+            { name: "Companies", id: "companies" },
             { name: "Comment Analytics", id: "analytics" },
             { name: "Post Reactions", id: "reactions" },
           ].map((tab) => (

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import TabContainer from "../TabContainer";
 
-const BulkCommentsUploadTab = () => {
+const BulkReactionsUploadTab = () => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
@@ -21,7 +21,7 @@ const BulkCommentsUploadTab = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("upload/comments", {
+      const res = await fetch("http://127.0.0.1:8000/api/upload/reactions", {
         method: "POST",
         headers: { "x-rapidapi-key": apiKey },
         body: formData,
@@ -34,7 +34,7 @@ const BulkCommentsUploadTab = () => {
 
       const data = await res.json();
       setUploadResult(data);
-      toast.success(`✅ Processed ${data.count} post URLs for comments.`);
+      toast.success(`✅ Processed ${data.count} post URLs for reactions.`);
     } catch (err) {
       toast.error(err.message);
       console.error("Upload error:", err);
@@ -50,7 +50,7 @@ const BulkCommentsUploadTab = () => {
     });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "linkedin_bulk_comments.json";
+    link.download = "linkedin_bulk_reactions.json";
     link.click();
   };
 
@@ -68,23 +68,21 @@ const BulkCommentsUploadTab = () => {
         return;
       }
 
-      const comments = item.data?.data?.comments || [];
-      if (!comments.length) {
-        csvSections.push("No comments found for this post.");
+      const reactions = item.data?.data?.reactions || [];
+      if (!reactions.length) {
+        csvSections.push("No reactions found for this post.");
         csvSections.push("");
         return;
       }
 
-      csvSections.push("Author,Headline,Comment,Reactions,Posted,Comment URL");
-      comments.forEach((c) => {
+      csvSections.push("Reactor Name,Headline,Reaction Type,Profile URL");
+      reactions.forEach((r) => {
         csvSections.push(
           [
-            `"${c.author?.name || "-"}"`,
-            `"${c.author?.headline || "-"}"`,
-            `"${(c.text || "").replace(/"/g, '""')}"`,
-            `"${c.stats?.total_reactions || 0}"`,
-            `"${c.posted_at?.relative || "-"}"`,
-            `"${c.comment_url || "-"}"`,
+            `"${r.reactor?.name || "-"}"`,
+            `"${r.reactor?.headline || "-"}"`,
+            `"${r.reaction_type || "-"}"`,
+            `"${r.reactor?.profile_url || "-"}"`,
           ].join(",")
         );
       });
@@ -99,14 +97,14 @@ const BulkCommentsUploadTab = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "linkedin_bulk_comments.csv";
+    link.download = "linkedin_bulk_reactions.csv";
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <TabContainer
-      title="📤 Bulk Upload LinkedIn Post URLs for Comments (CSV)"
+      title="📤 Bulk Upload LinkedIn Post URLs for Reactions (CSV)"
       onSubmit={handleFileUpload}
     >
       <div className="space-y-5">
@@ -161,4 +159,4 @@ const BulkCommentsUploadTab = () => {
   );
 };
 
-export default BulkCommentsUploadTab;
+export default BulkReactionsUploadTab;

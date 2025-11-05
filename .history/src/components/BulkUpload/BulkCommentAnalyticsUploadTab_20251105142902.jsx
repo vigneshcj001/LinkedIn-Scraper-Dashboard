@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import TabContainer from "../TabContainer";
 
-const BulkCommentsUploadTab = () => {
+const BulkCommentAnalyticsUploadTab = () => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
@@ -21,11 +21,14 @@ const BulkCommentsUploadTab = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("upload/comments", {
-        method: "POST",
-        headers: { "x-rapidapi-key": apiKey },
-        body: formData,
-      });
+      const res = await fetch(
+        "http://127.0.0.1:8000/api/upload/comment-analytics",
+        {
+          method: "POST",
+          headers: { "x-rapidapi-key": apiKey },
+          body: formData,
+        }
+      );
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -34,7 +37,7 @@ const BulkCommentsUploadTab = () => {
 
       const data = await res.json();
       setUploadResult(data);
-      toast.success(`✅ Processed ${data.count} post URLs for comments.`);
+      toast.success(`✅ Processed ${data.count} post URLs for analytics.`);
     } catch (err) {
       toast.error(err.message);
       console.error("Upload error:", err);
@@ -50,7 +53,7 @@ const BulkCommentsUploadTab = () => {
     });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "linkedin_bulk_comments.json";
+    link.download = "linkedin_bulk_comment_analytics.json";
     link.click();
   };
 
@@ -68,25 +71,30 @@ const BulkCommentsUploadTab = () => {
         return;
       }
 
-      const comments = item.data?.data?.comments || [];
-      if (!comments.length) {
-        csvSections.push("No comments found for this post.");
+      const summary = item.summary || {};
+      if (!summary.total_comments) {
+        csvSections.push("No comments or analytics found for this post.");
         csvSections.push("");
         return;
       }
 
-      csvSections.push("Author,Headline,Comment,Reactions,Posted,Comment URL");
-      comments.forEach((c) => {
-        csvSections.push(
-          [
-            `"${c.author?.name || "-"}"`,
-            `"${c.author?.headline || "-"}"`,
-            `"${(c.text || "").replace(/"/g, '""')}"`,
-            `"${c.stats?.total_reactions || 0}"`,
-            `"${c.posted_at?.relative || "-"}"`,
-            `"${c.comment_url || "-"}"`,
-          ].join(",")
-        );
+      csvSections.push("Metric,Value");
+      Object.entries(summary).forEach(([key, value]) => {
+        if (key === "top_commenters") {
+          csvSections.push(
+            `"Top Commenters","${value
+              .map(([name, count]) => `${name} (${count})`)
+              .join("; ")}"`
+          );
+        } else {
+          csvSections.push(
+            `"${key.replace(/_/g, " ")}","${
+              typeof value === "number"
+                ? value.toLocaleString(undefined, { maximumFractionDigits: 3 })
+                : String(value)
+            }"`
+          );
+        }
       });
       csvSections.push("");
       csvSections.push("");
@@ -99,14 +107,14 @@ const BulkCommentsUploadTab = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "linkedin_bulk_comments.csv";
+    link.download = "linkedin_bulk_comment_analytics.csv";
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <TabContainer
-      title="📤 Bulk Upload LinkedIn Post URLs for Comments (CSV)"
+      title="📤 Bulk Upload LinkedIn Post URLs for Comment Analytics (CSV)"
       onSubmit={handleFileUpload}
     >
       <div className="space-y-5">
@@ -161,4 +169,4 @@ const BulkCommentsUploadTab = () => {
   );
 };
 
-export default BulkCommentsUploadTab;
+export default BulkCommentAnalyticsUploadTab;
