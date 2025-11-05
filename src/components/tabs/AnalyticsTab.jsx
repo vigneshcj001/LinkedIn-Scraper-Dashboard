@@ -23,45 +23,11 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
     fetchData("analytics/comments", { post_url: postUrl });
   };
 
-  // ---------- Export JSON ----------
-  const exportJSON = (data, filename = "analytics_data.json") => {
-    if (!data) return;
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ---------- Export CSV ----------
-  const exportCSV = (data, filename = "analytics_data.csv") => {
-    if (!data || !data.length) return;
-    const headers = Object.keys(data[0]);
-    const csvRows = [
-      headers.join(","),
-      ...data.map((row) =>
-        headers.map((h) => JSON.stringify(row[h] ?? "")).join(",")
-      ),
-    ];
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ---------- Table ----------
   const AnalyticsTable = ({ data }) => {
     const summary = data?.summary || {};
     const comments = data?.comments || [];
 
-    if (!summary.total_comments) return <p>No analytics available.</p>;
+    if (!summary.total_comments) return null;
 
     const topCommenters = summary.top_commenters || [];
     const reactionHistogram = summary.reaction_histogram || {};
@@ -84,8 +50,110 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
             : String(v),
       }));
 
+    // ✅ Export Handlers (based on ProfileTab logic)
+    const exportJSON = () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `analytics_data.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const exportCSV = () => {
+      const csvSections = [];
+
+      // ---- Summary ----
+      csvSections.push("Summary");
+      csvSections.push("Metric,Value");
+      csvSections.push(
+        ...filteredSummary.map(
+          (r) => `"${r.Metric}","${r.Value?.toString().replace(/"/g, '""')}"`
+        )
+      );
+      csvSections.push("");
+
+      // ---- Top Commenters ----
+      if (topCommenters.length) {
+        csvSections.push("Top Commenters");
+        csvSections.push("Name,Comments");
+        csvSections.push(
+          ...topCommenters.map(
+            ([name, count]) => `"${name?.replace(/"/g, '""')}","${count || 0}"`
+          )
+        );
+        csvSections.push("");
+      }
+
+      // ---- Reaction Histogram ----
+      if (reactionData.length) {
+        csvSections.push("Reaction Histogram");
+        csvSections.push("Reaction,Count");
+        csvSections.push(
+          ...reactionData.map(
+            (r) =>
+              `"${r.Reaction?.replace(/"/g, '""')}","${
+                r.Count?.toString() || 0
+              }"`
+          )
+        );
+        csvSections.push("");
+      }
+
+      // ---- Comments ----
+      if (comments.length) {
+        csvSections.push("Comments");
+        csvSections.push(
+          "Author,Headline,Comment,Reactions,Posted,Profile URL"
+        );
+        csvSections.push(
+          ...comments.map((c) =>
+            [
+              c.author?.name || "-",
+              c.author?.headline || "-",
+              c.text || "-",
+              c.stats?.total_reactions || 0,
+              c.posted_at?.date || "-",
+              c.author?.profile_url || "-",
+            ]
+              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+              .join(",")
+          )
+        );
+      }
+
+      const blob = new Blob([csvSections.join("\n")], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `analytics_data.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
     return (
       <div className="space-y-8">
+        {/* ✅ Export Buttons */}
+        <div className="flex justify-end space-x-4 mb-4">
+          <button
+            onClick={exportJSON}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          >
+            Export JSON
+          </button>
+          <button
+            onClick={exportCSV}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Export CSV
+          </button>
+        </div>
+
         {/* ✅ Summary */}
         <DataTable
           title="Comment Analytics Summary"
@@ -142,22 +210,6 @@ const AnalyticsTab = ({ fetchData, ...props }) => {
             </div>
           </div>
         )}
-
-        {/* ✅ Export Buttons — now always visible */}
-        <div className="flex justify-end gap-3 mt-5">
-          <button
-            onClick={() => exportJSON(data)}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium shadow-sm transition"
-          >
-            Export JSON
-          </button>
-          <button
-            onClick={() => exportCSV(comments)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium shadow-sm transition"
-          >
-            Export CSV
-          </button>
-        </div>
 
         {/* ✅ Detailed Comments */}
         {comments.length > 0 && (

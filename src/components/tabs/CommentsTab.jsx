@@ -74,25 +74,11 @@ const CommentsTab = ({ fetchData, ...props }) => {
 
     return (
       <div className="space-y-6">
-        {/* ✅ Table */}
-        <DataTable
-          title="Post Comments"
-          data={tableData}
-          columns={[
-            "Commenter",
-            "Headline",
-            "Text",
-            "Reactions",
-            "Posted",
-            "Link",
-          ]}
-        />
-
-        {/* ✅ Export Buttons */}
-        <div className="flex justify-end gap-3 mt-4">
+        {/* ✅ Export Buttons moved to top */}
+        <div className="flex justify-end gap-3 mb-4">
           <button
             onClick={() => exportJSON(comments)}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium shadow-sm transition"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium shadow-sm transition"
           >
             Export JSON
           </button>
@@ -114,6 +100,20 @@ const CommentsTab = ({ fetchData, ...props }) => {
             Export CSV
           </button>
         </div>
+
+        {/* ✅ Table */}
+        <DataTable
+          title="Post Comments"
+          data={tableData}
+          columns={[
+            "Commenter",
+            "Headline",
+            "Text",
+            "Reactions",
+            "Posted",
+            "Link",
+          ]}
+        />
       </div>
     );
   };
